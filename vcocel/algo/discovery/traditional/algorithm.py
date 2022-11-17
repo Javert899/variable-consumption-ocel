@@ -194,4 +194,12 @@ def fold_petri_net(net, im, fm, trans_count):
                         arc = petri_utils.add_arc_from_to(source_obj, target_obj, new_net, weight=1)
                         arc.histogram = trans_count_out[trans_name_split]
                         added_arcs.add(arc_desc)
+    current_transitions = list(new_net.transitions)
+    for trans in current_transitions:
+        if trans.label is not None and trans.label.startswith("SKIP"):
+            trans.label = trans.label.split("SKIP")[1]
+            new_trans = PetriNet.Transition(str(uuid.uuid4()), None)
+            new_net.transitions.add(new_trans)
+            petri_utils.add_arc_from_to(list(trans.in_arcs)[0].source, new_trans, new_net)
+            petri_utils.add_arc_from_to(new_trans, list(trans.out_arcs)[0].target, new_net)
     return new_net, im, fm
