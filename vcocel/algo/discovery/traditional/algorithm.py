@@ -40,7 +40,7 @@ def __map_consecutive_activities_log(log, activity_key="concept:name"):
     return new_log, max_map, list_trace_maps
 
 
-def __add_tree_to_net(prefix_tree, max_map, net, coming_place, sink):
+def __add_tree_to_net(prefix_tree, max_map, net, coming_place, sink, rec_level=0):
     max_cons = 1
     max_prod = 1
     exiting_place = coming_place
@@ -59,15 +59,17 @@ def __add_tree_to_net(prefix_tree, max_map, net, coming_place, sink):
                 petri_utils.add_arc_from_to(coming_place, trans, net, weight=i+1)
                 petri_utils.add_arc_from_to(trans, exiting_place, net, weight=j+1)
     for el in prefix_tree.children:
-        __add_tree_to_net(el, max_map, net, exiting_place, sink)
-    for i in range(max_prod):
-        trans = PetriNet.Transition(str(uuid.uuid4()), None)
-        net.transitions.add(trans)
-        petri_utils.add_arc_from_to(exiting_place, trans, net, weight=i+1)
-        petri_utils.add_arc_from_to(trans, sink, net, weight=1)
+        __add_tree_to_net(el, max_map, net, exiting_place, sink, rec_level+1)
+    if rec_level > 0:
+        for i in range(max_prod):
+            trans = PetriNet.Transition(str(uuid.uuid4()), None)
+            net.transitions.add(trans)
+            petri_utils.add_arc_from_to(exiting_place, trans, net, weight=i+1)
+            petri_utils.add_arc_from_to(trans, sink, net, weight=1)
 
 
 def __replay_trace(trace, net, im, fm, list_trace_maps, j):
+    source = list(im)[0]
     activated_transitions = []
     marking = copy(im)
     trans_map = {}
@@ -83,6 +85,8 @@ def __replay_trace(trace, net, im, fm, list_trace_maps, j):
         next_tokens = list_trace_maps[j][trace[i+1]["concept:name"]]
         trans = [x for x in enabled if x.label == curr_ev]
         trans = [x for x in trans if int(x.name.split("#@#")[1])+1 == curr_tokens and int(x.name.split("#@#")[2])+1 == next_tokens]
+        if i > 0:
+            trans = [x for x in trans if list(x.in_arcs)[0].source is not source]
         trans = trans[0]
         marking = semantics.execute(trans, net, marking)
         activated_transitions.append(trans)
@@ -94,6 +98,7 @@ def __replay_trace(trace, net, im, fm, list_trace_maps, j):
     marking = semantics.execute(trans, net, marking)
     activated_transitions.append(trans)
     enabled = list(semantics.enabled_transitions(net, marking))
+    enabled = [x for x in enabled if x.label is None]
     trans = enabled[0]
     semantics.execute(trans, net, marking)
     activated_transitions.append(trans)
