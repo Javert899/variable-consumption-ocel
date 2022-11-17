@@ -8,6 +8,7 @@ from pm4py.objects.petri_net import semantics
 from copy import copy
 from collections import Counter
 
+
 def __map_consecutive_activities_log(log, activity_key="concept:name"):
     new_log = EventLog()
     max_map = {}
@@ -100,8 +101,11 @@ def __replay_trace(trace, net, im, fm, list_trace_maps, j):
 
 
 
-def apply(log):
-    new_log, max_map, list_trace_maps = __map_consecutive_activities_log(log)
+def apply(log, max_map=None, list_trace_maps=None):
+    if max_map is None:
+        new_log, max_map, list_trace_maps = __map_consecutive_activities_log(log)
+    else:
+        new_log = log
     prefix_tree = pm4py.discover_prefix_tree(new_log)
     net = PetriNet("")
     source = PetriNet.Place("source")
