@@ -13,7 +13,7 @@ def apply(ocel, parameters=None):
     for ot in obj_types:
         proj_log, max_map, trace_maps, max_tokens = projection_algorithm.apply(ocel, ot)
         net, im, fm, trans_count = traditional_algorithm.apply(proj_log, max_map, trace_maps, max_tokens)
-        net, im, fm = traditional_algorithm.fold_petri_net(net, im, fm, trans_count)
+        #net, im, fm = traditional_algorithm.fold_petri_net(net, im, fm, trans_count)
         dct_nets[ot] = net
         dct_ims[ot] = im
         dct_fms[ot] = fm
