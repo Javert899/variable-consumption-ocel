@@ -152,6 +152,15 @@ def fold_petri_net(net, im, fm, trans_count):
         else:
             trans_count_in[trans_name_split] = {1: trans_count[tr]}
             trans_count_out[trans_name_split] = {1: trans_count[tr]}
+
+    for trans in trans_count_in:
+        summ = sum(trans_count_in[trans].values())
+        for el in trans_count_in[trans]:
+            trans_count_in[trans][el] = trans_count_in[trans][el] / summ
+    for trans in trans_count_out:
+        summ = sum(trans_count_out[trans].values())
+        for el in trans_count_out[trans]:
+            trans_count_out[trans][el] = trans_count_out[trans][el] / summ
     for arc in net.arcs:
         if isinstance(arc.source, PetriNet.Place):
             trans_name_split = arc.target.name.split("#@#")[0]
