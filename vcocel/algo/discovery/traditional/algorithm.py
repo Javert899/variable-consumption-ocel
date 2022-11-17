@@ -4,13 +4,14 @@ from pm4py.objects.log.obj import EventLog, Trace, Event
 import pm4py
 from pm4py.objects.petri_net.obj import PetriNet, Marking
 from pm4py.objects.petri_net.utils import petri_utils
-from pm4py.algo.conformance.alignments.petri_net import algorithm as alignments
-from pm4py.objects.log.util import filtering_utils
-
+from pm4py.objects.petri_net import semantics
+from copy import copy
+from collections import Counter
 
 def __map_consecutive_activities_log(log, activity_key="concept:name"):
     new_log = EventLog()
     max_map = {}
+    list_trace_maps = []
     for trace in log:
         curr_act = None
         map_acti_count = {}
@@ -34,7 +35,8 @@ def __map_consecutive_activities_log(log, activity_key="concept:name"):
             if not el in max_map:
                 max_map[el] = trace_map[el]
             max_map[el] = max(max_map[el], trace_map[el])
-    return new_log, max_map
+        list_trace_maps.append(trace_map)
+    return new_log, max_map, list_trace_maps
 
 
 def __add_tree_to_net(prefix_tree, max_map, net, coming_place, sink):
@@ -64,8 +66,42 @@ def __add_tree_to_net(prefix_tree, max_map, net, coming_place, sink):
         petri_utils.add_arc_from_to(trans, sink, net, weight=1)
 
 
-def __discover_net_variable_consumption(log):
-    new_log, max_map = __map_consecutive_activities_log(log)
+def __replay_trace(trace, net, im, fm, list_trace_maps, j):
+    activated_transitions = []
+    marking = copy(im)
+    trans_map = {}
+    for trans in net.transitions:
+        if trans.label is not None:
+            if trans.label not in trans_map:
+                trans_map[trans.label] = []
+            trans_map[trans.label].append(trans)
+    for i in range(len(trace)-1):
+        enabled = semantics.enabled_transitions(net, marking)
+        curr_ev = trace[i]["concept:name"].split("@@")[0]
+        curr_tokens = list_trace_maps[j][trace[i]["concept:name"]]
+        next_tokens = list_trace_maps[j][trace[i+1]["concept:name"]]
+        trans = [x for x in enabled if x.label == curr_ev]
+        trans = [x for x in trans if int(x.name.split("#@#")[1])+1 == curr_tokens and int(x.name.split("#@#")[2])+1 == next_tokens]
+        trans = trans[0]
+        marking = semantics.execute(trans, net, marking)
+        activated_transitions.append(trans)
+    enabled = semantics.enabled_transitions(net, marking)
+    curr_ev = trace[len(trace) - 1]["concept:name"].split("@@")[0]
+    curr_tokens = list_trace_maps[j][trace[len(trace) - 1]["concept:name"]]
+    trans = [x for x in enabled if x.label == curr_ev and int(x.name.split("#@#")[1])+1 == curr_tokens]
+    trans = trans[0]
+    marking = semantics.execute(trans, net, marking)
+    activated_transitions.append(trans)
+    enabled = list(semantics.enabled_transitions(net, marking))
+    trans = enabled[0]
+    semantics.execute(trans, net, marking)
+    activated_transitions.append(trans)
+    return activated_transitions
+
+
+
+def apply(log):
+    new_log, max_map, list_trace_maps = __map_consecutive_activities_log(log)
     prefix_tree = pm4py.discover_prefix_tree(new_log)
     net = PetriNet("")
     source = PetriNet.Place("source")
@@ -75,17 +111,10 @@ def __discover_net_variable_consumption(log):
     im = Marking({source: 1})
     fm = Marking({sink: 1})
     __add_tree_to_net(prefix_tree, max_map, net, source, sink)
-    for trace in new_log:
-        for ev in trace:
-            ev["concept:name"] = ev["concept:name"].split("@@")[0]
-    pm4py.view_petri_net(net, im, fm, format="svg")
-    aligned_traces = alignments.apply(new_log, net, im, fm, variant=alignments.Variants.VERSION_DIJKSTRA_LESS_MEMORY, parameters={"ret_tuple_as_trans_desc": True})
-    trans_count = {x: 0 for x in net.transitions}
-    trans_ids = {x.name: x for x in net.transitions}
-    for trace in aligned_traces:
-        for move in trace["alignment"]:
-            if move[0][1] in trans_ids:
-                trans_count[trans_ids[move[0][1]]] += 1
+    trans_count = []
+    for j, trace in enumerate(new_log):
+        trans_count = trans_count + __replay_trace(trace, net, im, fm, list_trace_maps, j)
+    trans_count = dict(Counter(trans_count))
     for trans in trans_count:
         if trans_count[trans] == 0:
             petri_utils.remove_transition(net, trans)
@@ -93,7 +122,7 @@ def __discover_net_variable_consumption(log):
     return net, im, fm, trans_count
 
 
-def __fold_petri_net(net, im, fm, trans_count):
+def fold_petri_net(net, im, fm, trans_count):
     added_transitions = {}
     added_arcs = set()
     new_net = PetriNet()
@@ -133,12 +162,9 @@ def __fold_petri_net(net, im, fm, trans_count):
         if "#@#" in tr.name:
             trans_in = int(tr.name.split("#@#")[1]) + 1
             trans_out = int(tr.name.split("#@#")[2]) + 1
-            print(tr.name, trans_in, trans_out)
             trans_count_in[trans_name_split][trans_in] = trans_count[tr]
             trans_count_out[trans_name_split][trans_out] = trans_count[tr]
         else:
             trans_count_in[trans_name_split] = {1: trans_count[tr]}
             trans_count_out[trans_name_split] = {1: trans_count[tr]}
-    print(trans_count_in)
-    print(trans_count_out)
     return new_net, im, fm
