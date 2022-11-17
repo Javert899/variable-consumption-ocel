@@ -128,7 +128,7 @@ def fold_petri_net(net, im, fm, trans_count):
     new_net = PetriNet()
     for place in net.places:
         new_net.places.add(place)
-    for trans in net.transitions:
+    for trans in trans_count:
         trans_name_split = trans.name.split("#@#")[0]
         if trans_name_split not in added_transitions:
             if "##" in trans_name_split:
@@ -137,21 +137,6 @@ def fold_petri_net(net, im, fm, trans_count):
                 new_trans = PetriNet.Transition(trans_name_split, None)
             new_net.transitions.add(new_trans)
             added_transitions[trans_name_split] = new_trans
-        new_net.transitions.add(trans)
-    for arc in net.arcs:
-        if isinstance(arc.source, PetriNet.Place):
-            trans_name_split = arc.target.name.split("#@#")[0]
-            arc_desc = arc.source.name + "->" + trans_name_split
-            source_obj = arc.source
-            target_obj = added_transitions[trans_name_split]
-        elif isinstance(arc.target, PetriNet.Place):
-            trans_name_split = arc.source.name.split("#@#")[0]
-            arc_desc = trans_name_split + "->" + arc.target.name
-            source_obj = added_transitions[trans_name_split]
-            target_obj = arc.target
-        if arc_desc not in added_arcs:
-            added_arcs.add(arc_desc)
-            arc = petri_utils.add_arc_from_to(source_obj, target_obj, new_net, weight=1)
     trans_count_in = {}
     trans_count_out = {}
     for tr in trans_count:
@@ -167,4 +152,27 @@ def fold_petri_net(net, im, fm, trans_count):
         else:
             trans_count_in[trans_name_split] = {1: trans_count[tr]}
             trans_count_out[trans_name_split] = {1: trans_count[tr]}
+    for arc in net.arcs:
+        if isinstance(arc.source, PetriNet.Place):
+            trans_name_split = arc.target.name.split("#@#")[0]
+            arc_desc = arc.source.name + "->" + trans_name_split
+            source_obj = arc.source
+            if trans_name_split in added_transitions:
+                target_obj = added_transitions[trans_name_split]
+                if arc_desc not in added_arcs:
+                    if trans_name_split in trans_count_in:
+                        arc = petri_utils.add_arc_from_to(source_obj, target_obj, new_net, weight=1)
+                        arc.histogram = trans_count_in[trans_name_split]
+                        added_arcs.add(arc_desc)
+        else:
+            trans_name_split = arc.source.name.split("#@#")[0]
+            arc_desc = trans_name_split + "->" + arc.target.name
+            target_obj = arc.target
+            if trans_name_split in added_transitions:
+                source_obj = added_transitions[trans_name_split]
+                if arc_desc not in added_arcs:
+                    if trans_name_split in trans_count_out:
+                        arc = petri_utils.add_arc_from_to(source_obj, target_obj, new_net, weight=1)
+                        arc.histogram = trans_count_out[trans_name_split]
+                        added_arcs.add(arc_desc)
     return new_net, im, fm
