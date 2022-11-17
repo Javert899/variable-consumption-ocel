@@ -101,7 +101,7 @@ def __replay_trace(trace, net, im, fm, list_trace_maps, j):
 
 
 
-def apply(log, max_map=None, list_trace_maps=None):
+def apply(log, max_map=None, list_trace_maps=None, max_tokens=1):
     if max_map is None:
         new_log, max_map, list_trace_maps = __map_consecutive_activities_log(log)
     else:
@@ -112,15 +112,16 @@ def apply(log, max_map=None, list_trace_maps=None):
     sink = PetriNet.Place("sink")
     net.places.add(source)
     net.places.add(sink)
-    im = Marking({source: 1})
-    fm = Marking({sink: 1})
+    im = Marking({source: max_tokens})
+    fm = Marking({sink: max_tokens})
     __add_tree_to_net(prefix_tree, max_map, net, source, sink)
     trans_count = []
     for j, trace in enumerate(new_log):
         trans_count = trans_count + __replay_trace(trace, net, im, fm, list_trace_maps, j)
     trans_count = dict(Counter(trans_count))
-    for trans in trans_count:
-        if trans_count[trans] == 0:
+    all_trans = list(net.transitions)
+    for trans in all_trans:
+        if trans not in trans_count:
             petri_utils.remove_transition(net, trans)
     trans_count = {x: y for x, y in trans_count.items() if y >= 1}
     return net, im, fm, trans_count

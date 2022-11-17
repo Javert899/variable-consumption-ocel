@@ -7,6 +7,7 @@ def apply(ocel, object_type, activity_key='concept:name'):
     proj_log = EventLog()
     trace_maps = []
     max_map = {}
+    max_tokens = 0
     for spli in ocel_splits:
         relations = spli.relations
         relations = relations[relations[ocel.object_type_column] == object_type]
@@ -27,24 +28,25 @@ def apply(ocel, object_type, activity_key='concept:name'):
             diff_acti_objects[act] = all_objects.difference(acti_objects[act])
         trace_acti_count = {}
         trace = Trace()
-        trace_map = []
+        trace_map = {}
         i = 0
         while i < len(objects_number):
-            if not activities[i] in trace_acti_count:
-                trace_acti_count[activities[i]] = 1
-            else:
-                trace_acti_count[activities[i]] += 1
-            trace_map.append(len(objects_number[i]))
-            act = activities[i] + "@@" + str(trace_acti_count[activities[i]])
+            act = activities[i]
             if len(all_objects.difference(objects_number[i])) > 0:
                 act = "SKIP" + act
+            if act not in trace_acti_count:
+                trace_acti_count[act] = 1
+            else:
+                trace_acti_count[act] += 1
+            act = act + "@@" + str(trace_acti_count[act])
             trace.append({activity_key: act})
+            trace_map[act] = len(objects_number[i])
+            if act not in max_map:
+                max_map[act] = len(objects_number[i])
+            else:
+                max_map[act] = max(max_map[act], len(objects_number[i]))
             i = i + 1
         proj_log.append(trace)
         trace_maps.append(trace_map)
-        for act in trace_acti_count:
-            if act not in max_map:
-                max_map[act] = trace_acti_count[act]
-            else:
-                max_map[act] = max(max_map[act], trace_acti_count[act])
-    return proj_log, max_map, trace_maps
+        max_tokens = max(max_tokens, len(all_objects))
+    return proj_log, max_map, trace_maps, max_tokens
