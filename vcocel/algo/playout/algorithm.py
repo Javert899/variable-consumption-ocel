@@ -40,7 +40,6 @@ def apply(dct_nets, dct_ims, dct_fms, no_comps=50, max_iter=1000):
                 break
             pick_ot = random.choice(list(dct_nets))
             if ent[pick_ot]:
-                print(markings)
                 cons_trans = random.choice(list(ent[pick_ot]))
                 trans_to_fire = [(pick_ot, cons_trans)]
                 is_ok = True
@@ -59,11 +58,11 @@ def apply(dct_nets, dct_ims, dct_fms, no_comps=50, max_iter=1000):
                     #continuee = True
                     for el in trans_to_fire:
                         markings[el[0]] = semantics.execute(el[1], dct_nets[el[0]], markings[el[0]])
-                if cons_trans.label is not None:
-                    visible_ot_count = {}
-                    for el in trans_to_fire:
-                        visible_ot_count[el[0]] = list(el[1].in_arcs)[0].weight
-                    primitive_events.append((el[1].label, visible_ot_count))
+                    if cons_trans.label is not None:
+                        visible_ot_count = {}
+                        for el in trans_to_fire:
+                            visible_ot_count[el[0]] = list(el[1].in_arcs)[0].weight
+                        primitive_events.append((el[1].label.split("SKIP")[-1], visible_ot_count))
         print(" ")
         print(primitive_events)
         input()
