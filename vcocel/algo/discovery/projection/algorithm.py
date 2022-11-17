@@ -46,7 +46,8 @@ def apply(ocel, object_type, activity_key='concept:name'):
             else:
                 max_map[act] = max(max_map[act], len(objects_number[i]))
             i = i + 1
-        proj_log.append(trace)
-        trace_maps.append(trace_map)
-        max_tokens = max(max_tokens, len(all_objects))
+        if len(trace) > 0:
+            proj_log.append(trace)
+            trace_maps.append(trace_map)
+            max_tokens = max(max_tokens, len(all_objects))
     return proj_log, max_map, trace_maps, max_tokens
