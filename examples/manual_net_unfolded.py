@@ -121,13 +121,48 @@ create_order_e = PetriNet.Transition(str(uuid4()), "Create Order")
 send_package_e = PetriNet.Transition(str(uuid4()), "Send Package")
 item_issue_e = PetriNet.Transition(str(uuid4()), "Item Issue")
 item_fixed_e = PetriNet.Transition(str(uuid4()), "Item Fixed")
+skip_e = PetriNet.Transition(str(uuid4()), None)
 nete.transitions.add(create_order_e)
 nete.transitions.add(send_package_e)
 nete.transitions.add(item_issue_e)
 nete.transitions.add(item_fixed_e)
+nete.transitions.add(skip_e)
 p1e = PetriNet.Place("p1e")
 p2e = PetriNet.Place("p2e")
 p3e = PetriNet.Place("p3e")
 nete.places.add(p1e)
 nete.places.add(p2e)
 nete.places.add(p3e)
+arc1 = petri_utils.add_arc_from_to(sourcee, create_order_e, nete)
+arc2 = petri_utils.add_arc_from_to(create_order_e, p1e, nete)
+arc3 = petri_utils.add_arc_from_to(p1e, skip_e, nete)
+arc4 = petri_utils.add_arc_from_to(p1e, item_issue_e, nete)
+arc5 = petri_utils.add_arc_from_to(item_issue_e, p2e, nete)
+arc6 = petri_utils.add_arc_from_to(p2e, item_fixed_e, nete)
+arc7 = petri_utils.add_arc_from_to(item_fixed_e, p3e, nete)
+arc8 = petri_utils.add_arc_from_to(skip_e, p3e, nete)
+arc9 = petri_utils.add_arc_from_to(p3e, send_package_e, nete)
+arc10 = petri_utils.add_arc_from_to(send_package_e, targete, nete)
+arc1.histogram = {2: 0.5, 3: 0.5}
+arc2.histogram = {2: 0.5, 3: 0.5}
+arc3.histogram = {2: 0.666667, 3: 0.333333}
+arc4.histogram = {1: 1}
+arc5.histogram = {1: 1}
+arc6.histogram = {1: 1}
+arc7.histogram = {1: 1}
+arc8.histogram = {2: 0.666667, 3: 0.333333}
+arc9.histogram = {2: 0.5, 3: 0.5}
+arc10.histogram = {2: 0.5, 3: 0.5}
+
+arc1.weight = str(arc1.histogram)
+arc2.weight = str(arc2.histogram)
+arc3.weight = str(arc3.histogram)
+arc4.weight = str(arc4.histogram)
+arc5.weight = str(arc5.histogram)
+arc6.weight = str(arc6.histogram)
+arc7.weight = str(arc7.histogram)
+arc8.weight = str(arc8.histogram)
+arc9.weight = str(arc9.histogram)
+arc10.weight = str(arc10.histogram)
+
+pm4py.view_petri_net(nete, ime, fme, format="svg")
