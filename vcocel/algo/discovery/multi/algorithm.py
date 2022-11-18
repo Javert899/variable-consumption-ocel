@@ -1,3 +1,5 @@
+import pm4py
+
 from vcocel.algo.discovery.projection import algorithm as projection_algorithm
 from vcocel.algo.discovery.traditional import algorithm as traditional_algorithm
 
@@ -18,6 +20,7 @@ def apply(ocel, parameters=None):
         dct_ims[ot] = im
         dct_fms[ot] = fm
         net, im, fm = traditional_algorithm.fold_petri_net(net, im, fm, trans_count)
+        pm4py.view_petri_net(net, im, fm, format="svg")
         dct_folded_nets[ot] = [net, im, fm]
 
     return dct_nets, dct_ims, dct_fms, obj_types, dct_folded_nets
