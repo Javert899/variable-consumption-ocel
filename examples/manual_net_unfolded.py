@@ -72,9 +72,8 @@ arc9o.weight = str(arc9o.histogram)
 arc10o.weight = str(arc10o.histogram)
 arc11o.weight = str(arc11o.histogram)
 arc12o.weight = str(arc12o.histogram)
-pm4py.save_vis_petri_net(neto, imo, fmo, "folded_order.svg")
+pm4py.save_vis_petri_net(neto, imo, fmo, "folded_order.png")
 """
-
 
 neti = PetriNet()
 imi = Marking()
@@ -183,7 +182,7 @@ arc7.weight = str(arc7.histogram)
 arc8.weight = str(arc8.histogram)
 arc9.weight = str(arc9.histogram)
 arc10.weight = str(arc10.histogram)
-pm4py.save_vis_petri_net(nete, ime, fme, "folded_item.svg")
+pm4py.save_vis_petri_net(nete, ime, fme, "folded_item.png")
 """
 
 list_nets = {}
@@ -201,5 +200,6 @@ list_fms["item"] = fmi
 list_folded["order"] = [neto, imo, fmo]
 list_folded["item"] = [nete, ime, fme]
 
-gviz = visualizer.apply(list_folded, parameters={"format": "svg"})
-visualizer.gview.view(gviz)
+gviz = visualizer.apply(list_folded, parameters={"format": "png"})
+visualizer.gsave.save(gviz, "total.png")
+
