@@ -132,8 +132,8 @@ sourcee = PetriNet.Place("source")
 targete = PetriNet.Place("targete")
 nete.places.add(sourcee)
 nete.places.add(targete)
-ime[sourcee] = 1
-fme[targete] = 1
+ime[sourcee] = 3
+fme[targete] = 3
 create_order_e = PetriNet.Transition(str(uuid4()), "Create Order")
 send_package_e = PetriNet.Transition(str(uuid4()), "Send Package")
 item_issue_e = PetriNet.Transition(str(uuid4()), "Item Issue")
@@ -203,3 +203,4 @@ list_folded["item"] = [nete, ime, fme]
 gviz = visualizer.apply(list_folded, parameters={"format": "png"})
 visualizer.gsave.save(gviz, "total.png")
 
+playout =
