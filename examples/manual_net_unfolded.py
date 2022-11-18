@@ -2,6 +2,7 @@ import pm4py
 from pm4py.objects.petri_net.obj import PetriNet, Marking
 from pm4py.objects.petri_net.utils import petri_utils
 from uuid import uuid4
+from vcocel.visualization.pnets import visualizer
 
 
 neto = PetriNet()
@@ -58,6 +59,7 @@ arc10o.histogram = {1: 1.0}
 arc11o.histogram = {1: 1.0}
 arc12o.histogram = {1: 1.0}
 
+"""
 arc1o.weight = str(arc1o.histogram)
 arc2o.weight = str(arc2o.histogram)
 arc3o.weight = str(arc3o.histogram)
@@ -70,10 +72,8 @@ arc9o.weight = str(arc9o.histogram)
 arc10o.weight = str(arc10o.histogram)
 arc11o.weight = str(arc11o.histogram)
 arc12o.weight = str(arc12o.histogram)
-
-#pm4py.view_petri_net(neto, imo, fmo, format="svg")
-
 pm4py.save_vis_petri_net(neto, imo, fmo, "folded_order.svg")
+"""
 
 
 neti = PetriNet()
@@ -161,17 +161,18 @@ arc7 = petri_utils.add_arc_from_to(item_fixed_e, p3e, nete)
 arc8 = petri_utils.add_arc_from_to(skip_e, p3e, nete)
 arc9 = petri_utils.add_arc_from_to(p3e, send_package_e, nete)
 arc10 = petri_utils.add_arc_from_to(send_package_e, targete, nete)
-arc1.histogram = {2: 0.5, 3: 0.5}
-arc2.histogram = {2: 0.5, 3: 0.5}
-arc3.histogram = {2: 0.666667, 3: 0.333333}
+arc1.histogram = {2: 0.33, 3: 0.67}
+arc2.histogram = {2: 0.33, 3: 0.67}
+arc3.histogram = {2: 0.67, 3: 0.33}
 arc4.histogram = {1: 1}
 arc5.histogram = {1: 1}
 arc6.histogram = {1: 1}
 arc7.histogram = {1: 1}
-arc8.histogram = {2: 0.666667, 3: 0.333333}
-arc9.histogram = {2: 0.5, 3: 0.5}
-arc10.histogram = {2: 0.5, 3: 0.5}
+arc8.histogram = {2: 0.67, 3: 0.33}
+arc9.histogram = {2: 0.33, 3: 0.67}
+arc10.histogram = {2: 0.33, 3: 0.67}
 
+"""
 arc1.weight = str(arc1.histogram)
 arc2.weight = str(arc2.histogram)
 arc3.weight = str(arc3.histogram)
@@ -182,5 +183,23 @@ arc7.weight = str(arc7.histogram)
 arc8.weight = str(arc8.histogram)
 arc9.weight = str(arc9.histogram)
 arc10.weight = str(arc10.histogram)
-
 pm4py.save_vis_petri_net(nete, ime, fme, "folded_item.svg")
+"""
+
+list_nets = {}
+list_ims = {}
+list_fms = {}
+list_folded = {}
+
+list_nets["order"] = neto
+list_nets["item"] = neti
+list_ims["order"] = imo
+list_ims["item"] = imi
+list_fms["order"] = fmo
+list_fms["item"] = fmi
+
+list_folded["order"] = [neto, imo, fmo]
+list_folded["item"] = [nete, ime, fme]
+
+gviz = visualizer.apply(list_folded, parameters={"format": "svg"})
+visualizer.gview.view(gviz)

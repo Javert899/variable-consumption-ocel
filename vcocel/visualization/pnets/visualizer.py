@@ -86,7 +86,7 @@ def apply(dct_folded_nets, parameters=None):
         for arc in net.arcs:
             label = " "
             if hasattr(arc, "histogram"):
-                label = str(arc.histogram)
+                label = str(arc.histogram).replace(", ", "\n")
             if isinstance(arc.source, PetriNet.Place):
                 for i in matched_transitions_corr[arc.target]:
                     viz.edge(added_places[arc.source], nodes_uuids[i], label=label, color=this_color)
