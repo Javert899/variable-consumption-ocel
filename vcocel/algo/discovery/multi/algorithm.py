@@ -19,7 +19,8 @@ def apply(ocel, parameters=None):
         dct_nets[ot] = net
         dct_ims[ot] = im
         dct_fms[ot] = fm
-        """net, im, fm = traditional_algorithm.fold_petri_net(net, im, fm, trans_count)
+        net, im, fm = traditional_algorithm.fold_petri_net(net, im, fm, trans_count)
+        """
         for arc in net.arcs:
             if hasattr(arc, "histogram"):
                 arc.weight = str(arc.histogram)
