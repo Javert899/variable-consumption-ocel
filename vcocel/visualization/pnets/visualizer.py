@@ -84,12 +84,15 @@ def apply(dct_folded_nets, parameters=None):
                 label = "<&#9632;>"
             viz.node(added_places[place], label, shape="circle", style="filled", fillcolor=this_color)
         for arc in net.arcs:
+            label = " "
+            if hasattr(arc, "histogram"):
+                label = str(arc.histogram)
             if isinstance(arc.source, PetriNet.Place):
                 for i in matched_transitions_corr[arc.target]:
-                    viz.edge(added_places[arc.source], nodes_uuids[i], color=this_color)
+                    viz.edge(added_places[arc.source], nodes_uuids[i], label=label, color=this_color)
             else:
                 for i in matched_transitions_corr[arc.source]:
-                    viz.edge(nodes_uuids[i], added_places[arc.target], color=this_color)
+                    viz.edge(nodes_uuids[i], added_places[arc.target], label=label, color=this_color)
 
     viz.attr(overlap='false')
     viz.attr(splines='false')

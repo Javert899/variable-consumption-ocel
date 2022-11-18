@@ -11,8 +11,15 @@ def apply(ocel, object_type, activity_key='concept:name'):
     for spli in ocel_splits:
         relations = spli.relations
         relations = relations[relations[ocel.object_type_column] == object_type]
-        objects_number = relations.groupby(ocel.event_id_column)[ocel.object_id_column].agg(tuple).to_list()
-        activities = relations.groupby(ocel.event_id_column).first()["ocel:activity"].to_list()
+        relations = relations.sort_values("ocel:timestamp")
+        objects_number = relations.groupby(ocel.event_id_column)[[ocel.object_id_column, "ocel:timestamp"]].agg(tuple).to_dict("records")
+        activities = relations.groupby(ocel.event_id_column).first()[["ocel:activity", "ocel:timestamp"]].to_dict("records")
+        objects_number = [(x["ocel:oid"], x["ocel:timestamp"]) for x in objects_number]
+        activities = [(x["ocel:activity"], x["ocel:timestamp"]) for x in activities]
+        objects_number = sorted(objects_number, key=lambda x: x[1])
+        activities = sorted(activities, key=lambda x: x[1])
+        objects_number = [x[0] for x in objects_number]
+        activities = [x[0] for x in activities]
         all_objects = set()
         acti_objects = dict()
         i = 0
