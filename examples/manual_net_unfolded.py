@@ -55,8 +55,26 @@ arc7o.histogram = {1: 1.0}
 arc8o.histogram = {1: 1.0}
 arc9o.histogram = {1: 1.0}
 arc10o.histogram = {1: 1.0}
+arc11o.histogram = {1: 1.0}
+arc12o.histogram = {1: 1.0}
+
+arc1o.weight = str(arc1o.histogram)
+arc2o.weight = str(arc2o.histogram)
+arc3o.weight = str(arc3o.histogram)
+arc4o.weight = str(arc4o.histogram)
+arc5o.weight = str(arc5o.histogram)
+arc6o.weight = str(arc6o.histogram)
+arc7o.weight = str(arc7o.histogram)
+arc8o.weight = str(arc8o.histogram)
+arc9o.weight = str(arc9o.histogram)
+arc10o.weight = str(arc10o.histogram)
+arc11o.weight = str(arc11o.histogram)
+arc12o.weight = str(arc12o.histogram)
 
 #pm4py.view_petri_net(neto, imo, fmo, format="svg")
+
+pm4py.save_vis_petri_net(neto, imo, fmo, "folded_order.svg")
+
 
 neti = PetriNet()
 imi = Marking()
@@ -165,4 +183,4 @@ arc8.weight = str(arc8.histogram)
 arc9.weight = str(arc9.histogram)
 arc10.weight = str(arc10.histogram)
 
-pm4py.view_petri_net(nete, ime, fme, format="svg")
+pm4py.save_vis_petri_net(nete, ime, fme, "folded_item.svg")
